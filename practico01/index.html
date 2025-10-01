@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>tp1</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>{{ mensaje }}</h1>
+    <ul>
+        <li>Nombre: {{ nombre }}</li>
+        <li>Edad: {{ edad }}</li>
+        <li>Ciudad: {{ ciudad }}</li>
+        <li>Hola, mi nombre es {{ nombre }}, tengo {{ edad }} años y vivo en {{ ciudad }}.</li>
+    </ul>
+</div>
+    
+    <script> 
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    mensaje: 'Hola, este es el TP1 de PWA',
+                    nombre:'Ana Garcia',
+                    edad:'30',
+                    ciudad:'Tupungato'
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
