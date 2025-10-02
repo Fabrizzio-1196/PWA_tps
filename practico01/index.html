@@ -13,8 +13,13 @@
         <li>Edad: {{ edad }}</li>
         <li>Ciudad: {{ ciudad }}</li>
         <li>Hola, mi nombre es {{ nombre }}, tengo {{ edad }} años y vivo en {{ ciudad }}.</li>
-    </ul>
-</div>
+    </ul> <br>
+
+    <button @click="incrementar">Incrementar</button>
+    <button @click="decrementar">Decrementar</button>
+    <p>Contador: {{ contador }}</p>
+
+    </div>
     
     <script> 
         const { createApp } = Vue;
@@ -22,13 +27,24 @@
         createApp({
             data() {
                 return {
-                    mensaje: 'Hola, este es el TP1 de PWA',
+                    mensaje: 'TP1 PWA',
                     nombre:'Ana Garcia',
                     edad:'30',
-                    ciudad:'Tupungato'
+                    ciudad:'Tupungato',
+                    contador:0,
                 }
-            }
+            },
+
+            methods: {
+        incrementar() {
+            this.contador++;
+        },
+        decrementar() {
+            this.contador--;
+        }
+    }
         }).mount('#app');
+
     </script>
 </body>
 </html>
