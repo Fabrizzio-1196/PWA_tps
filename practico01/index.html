@@ -4,6 +4,60 @@
     <meta charset="UTF-8">
     <title>tp1</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+       <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        #app {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 24px 32px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        input[type="text"] {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 70%;
+            margin-right: 8px;
+        }
+        button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            background: #3498db;
+            color: #fff;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        p {
+            font-size: 1rem;
+            margin: 12px 0 0 0;
+        }
+    </style>
+
 </head>
 <body>
   <div id="app">
@@ -17,7 +71,20 @@
 
     <button @click="incrementar">Incrementar</button>
     <button @click="decrementar">Decrementar</button>
-    <p>Contador: {{ contador }}</p>
+        <p>Contador: {{ contador }}</p> <br>
+
+        <input v-model="nuevaTarea" placeholder="Nueva tarea">
+        <button @click="agregarTarea">Agregar tarea</button>
+
+        <ul>
+            <li v-for="tarea in tareas" :key="tarea.id">
+                            <input type="checkbox" v-model="tarea.completa" @change="guardarTareas">
+                                            {{ tarea.texto }}
+            </li>
+        </ul>
+    
+        <p>Tareas pendientes: {{ tareasPendientes }}</p>
+        <p>Total tareas: {{ totalTareas }}</p>
 
     </div>
     
@@ -32,18 +99,49 @@
                     edad:'30',
                     ciudad:'Tupungato',
                     contador:0,
+                    nuevaTarea:'',
+                    tareas: [
+                        { id: 1, texto: 'Estudiar Vue', completa: false },
+                    ]
                 }
             },
 
-            methods: {
-        incrementar() {
-            this.contador++;
-        },
-        decrementar() {
-            this.contador--;
-        }
-    }
-        }).mount('#app');
+        methods: {
+            incrementar() {
+                    this.contador++;
+                        },
+            decrementar() {
+                    this.contador--;
+             },
+            agregarTarea() {
+                if (this.nuevaTarea.trim() !== '') {
+                    const nuevoId = Date.now();
+                        this.tareas.push({
+                        id: nuevoId,
+                        texto: this.nuevaTarea,
+                        completa: false});
+
+                    this.nuevaTarea = '';
+                    localStorage.setItem('tareas', JSON.stringify(this.tareas));
+                }
+            },
+            guardarTareas() {
+            localStorage.setItem('tareas', JSON.stringify(this.tareas)); //Este método se ejecuta cuando el usuario marca o desmarca una tarea 
+            }                                                              //convierte el array de tareas en texto JSON y la guarda en localStorage
+            },                                                              // Así puedo ver las tareas actualizadas.
+
+
+        computed: {
+            tareasPendientes() {
+                return this.tareas.filter(tarea => !tarea.completa).length; //uso el método filter para obtener solo las tareas no completadas y luego contar cuántas hay
+            },
+             totalTareas(){
+                return this.tareas.length;
+            }
+        },  
+
+            }).mount('#app');
+
 
     </script>
 </body>
