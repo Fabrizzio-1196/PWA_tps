@@ -63,86 +63,167 @@
   <div id="app">
     <h1>{{ mensaje }}</h1>
     <ul>
-        <li>Nombre: {{ nombre }}</li>
-        <li>Edad: {{ edad }}</li>
-        <li>Ciudad: {{ ciudad }}</li>
-        <li>Hola, mi nombre es {{ nombre }}, tengo {{ edad }} años y vivo en {{ ciudad }}.</li>
-    </ul> <br>
+      <li>Nombre: {{ nombre }}</li>
+      <li>Edad: {{ edad }}</li>
+      <li>Ciudad: {{ ciudad }}</li>
+      <li>Hola, mi nombre es {{ nombre }}, tengo {{ edad }} años y vivo en {{ ciudad }}.</li>
+    </ul><br>
 
     <button @click="incrementar">Incrementar</button>
     <button @click="decrementar">Decrementar</button>
-        <p>Contador: {{ contador }}</p> <br>
+    <p>Contador: {{ contador }}</p><br>
 
-        <input v-model="nuevaTarea" placeholder="Nueva tarea">
-        <button @click="agregarTarea">Agregar tarea</button>
+    <input v-model="nuevaTarea" placeholder="Nueva tarea">
+    <button @click="agregarTarea">Agregar tarea</button>
 
-        <ul>
-            <li v-for="tarea in tareas" :key="tarea.id">
-                            <input type="checkbox" v-model="tarea.completa" @change="guardarTareas">
-                                            {{ tarea.texto }}
-            </li>
-        </ul>
-    
-        <p>Tareas pendientes: {{ tareasPendientes }}</p>
-        <p>Total tareas: {{ totalTareas }}</p>
+    <ul>
+      <li v-for="tarea in tareas" :key="tarea.id">
+        <input type="checkbox" v-model="tarea.completa" @change="guardarTareas">
+        {{ tarea.texto }}
+      </li>
+    </ul>
 
-    </div>
-    
-    <script> 
-        const { createApp } = Vue;
+    <p>Tareas pendientes: {{ tareasPendientes }}</p>
+    <p>Total tareas: {{ totalTareas }}</p>
 
-        createApp({
-            data() {
-                return {
-                    mensaje: 'TP1 PWA',
-                    nombre:'Ana Garcia',
-                    edad:'30',
-                    ciudad:'Tupungato',
-                    contador:0,
-                    nuevaTarea:'',
-                    tareas: [
-                        { id: 1, texto: 'Estudiar Vue', completa: false },
-                    ]
-                }
-            },
+    <h2>Eventos registrados</h2>
+    <ul>
+      <li v-for="evento in listaeventos" :key="evento.id">
+        ID {{ evento.id }} - {{ evento.nombre }} - {{ evento.timestamp }}
+      </li>
+    </ul>
+  </div>
 
-        methods: {
-            incrementar() {
-                    this.contador++;
-                        },
-            decrementar() {
-                    this.contador--;
-             },
-            agregarTarea() {
-                if (this.nuevaTarea.trim() !== '') {
-                    const nuevoId = Date.now();
-                        this.tareas.push({
-                        id: nuevoId,
-                        texto: this.nuevaTarea,
-                        completa: false});
+  <script>
+    // Variable Externa para eventos antes de que Vue exista.
+    const eventosTemporales = [];
 
-                    this.nuevaTarea = '';
-                    localStorage.setItem('tareas', JSON.stringify(this.tareas));
-                }
-            },
-            guardarTareas() {
-            localStorage.setItem('tareas', JSON.stringify(this.tareas)); //Este método se ejecuta cuando el usuario marca o desmarca una tarea 
-            }                                                              //convierte el array de tareas en texto JSON y la guarda en localStorage
-            },                                                              // Así puedo ver las tareas actualizadas.
+    // Función para registrar eventos fuera de Vue
+    function registrarEventoGlobal(nombreEvento) {
+      const ahora = new Date();
+      const timestamp = ahora.toLocaleString('es-AR', {
+        hour12: false,
+        timeZone: 'America/Argentina/Buenos_Aires',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }) + '.' + ahora.getMilliseconds();
 
+      eventosTemporales.push({
+        id: eventosTemporales.length + 1,
+        nombre: nombreEvento,
+        timestamp: timestamp
+      });
+    }
 
-        computed: {
-            tareasPendientes() {
-                return this.tareas.filter(tarea => !tarea.completa).length; //uso el método filter para obtener solo las tareas no completadas y luego contar cuántas hay
-            },
-             totalTareas(){
-                return this.tareas.length;
-            }
-        },  
+    // Registro de evento antes de crear Vue
+    registrarEventoGlobal('beforeCreate');
 
-            }).mount('#app');
+    const { createApp } = Vue;
 
+    createApp({
+      data() {
+        return {
+          contadorID: eventosTemporales.length + 1,
+          mensaje: 'Parcial2 PWA',
+          nombre: 'Ana Garcia',
+          edad: '30',
+          ciudad: 'Tupungato',
+          contador: 0,
+          nuevaTarea: '',
+          listaeventos: [],
+          tareas: [
+            { id: 1, texto: 'Estudiar Vue', completa: false },
+          ]
+        };
+      },
 
-    </script>
+      methods: {
+        registrarEvento(nombreEvento) {
+          const ahora = new Date();
+          const timestamp = ahora.toLocaleString('es-AR', {
+            hour12: false,
+            timeZone: 'America/Argentina/Buenos_Aires',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          }) + '.' + ahora.getMilliseconds();
+
+          this.listaeventos.push({
+            id: this.contadorID++,
+            nombre: nombreEvento,
+            timestamp: timestamp
+            
+          });
+
+          
+        },
+
+        incrementar() {
+          this.contador++;
+          this.registrarEvento('Incrementar');
+        },
+        decrementar() {
+          this.contador--;
+          this.registrarEvento('Decrementar');
+        },
+        agregarTarea() {
+          if (this.nuevaTarea.trim() !== '') {
+            const nuevoId = Date.now();
+            this.tareas.push({
+              id: nuevoId,
+              texto: this.nuevaTarea,
+              completa: false
+            });
+            this.nuevaTarea = '';
+            localStorage.setItem('tareas', JSON.stringify(this.tareas));
+            this.registrarEvento('Agregar Tarea');
+          }
+        },
+        guardarTareas() {
+          localStorage.setItem('tareas', JSON.stringify(this.tareas));
+          this.registrarEvento('Actualizar Tarea');
+        }
+      },
+
+      computed: {
+        tareasPendientes() {
+          return this.tareas.filter(tarea => !tarea.completa).length;
+        },
+        totalTareas() {
+          return this.tareas.length;
+        }
+      },
+
+      created() {
+        this.listaeventos = [...eventosTemporales];
+        this.registrarEvento('created');
+      },
+      beforeMount() {
+        this.registrarEvento('beforeMount');
+      },
+      mounted() {
+        this.registrarEvento('mounted');
+      },
+      beforeUpdate() {
+        this.registrarEvento('beforeUpdate'); //para que la lista de eventos no sea tan larga había comentado este evento.
+      },
+      updated() {
+        this.registrarEvento('updated'); //y este también. para que no se generé un bucle infinito al actualizar el DOM.
+       },
+      beforeUnmount() {
+        this.registrarEvento('beforeUnmount');
+      },
+      unmounted() {
+        this.registrarEvento('unmounted');
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
