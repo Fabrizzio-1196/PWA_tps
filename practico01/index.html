@@ -7,56 +7,76 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
        <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f7f7f7;
-            margin: 0;
-            padding: 0;
-        }
-        #app {
-            max-width: 500px;
-            margin: 40px auto;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 24px 32px;
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            margin-bottom: 8px;
-        }
-        input[type="text"] {
-            padding: 6px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            width: 70%;
-            margin-right: 8px;
-        }
-        button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            background: #3498db;
-            color: #fff;
-            cursor: pointer;
-            margin-right: 4px;
-        }
-        button:hover {
-            background: #2980b9;
-        }
-        input[type="checkbox"] {
-            margin-right: 8px;
-        }
-        p {
-            font-size: 1rem;
-            margin: 12px 0 0 0;
-        }
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  max-width: 600px;
+  margin: 40px auto;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px 32px;
+}
+
+h1, h2, h3 {
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+input[type="text"],
+input[type="number"] {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: calc(100% - 100px);
+  margin-right: 8px;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 5px 6px;
+  border: none;
+  border-radius: 6px;
+  background-color: #3498db;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+p {
+  font-size: 0.95rem;
+  margin: 12px 0;
+  color: #333;
+}
+
+strong {
+  color: #34495e;
+}
     </style>
 
 </head>
@@ -114,6 +134,23 @@
       </ul>
     </div>
 
+    <h2>Primeros 10 Posts</h2>
+    <ul>
+      <li v-for="post in listaPosts" :key="post.id">
+      <strong>{{ post.title }}</strong>
+      <button @click="obtenerComentariosDePost(post.id)">Ver comentarios</button>
+    </li>
+    </ul>
+
+    <div v-if="comentariosPostSeleccionado.length">
+    <h3>Comentarios del post seleccionado</h3>
+    <ul>
+      <li v-for="comentario in comentariosPostSeleccionado" :key="comentario.id">
+      <strong>{{ comentario.name }}</strong>: {{ comentario.body }}
+      </li>
+    </ul>
+    </div>
+
   </div>
 
   <script>
@@ -163,6 +200,9 @@
           postId: '',
           post: null,
           comentarios: [],
+          listaPosts: [],
+          comentariosPostSeleccionado: [],
+
 
         };
 
@@ -230,8 +270,44 @@
         this.comentarios = comentarios;
         this.registrarEvento(comentarios.length ? `Comentarios del post ${this.postId} obtenidos` : `Sin comentarios para el post ${this.postId}`);
         });
+        },
+
+        obtenerPrimerosPosts() {
+        this.listaPosts = [];
+        const promesas = [];
+
+        for (let i = 1; i <= 10; i++) {
+        promesas.push(
+        obtenerPost(i).then(post => {
+        if (post) {
+          this.registrarEvento(`Post ${i} agregado a listaPosts`);
+          return post;
+        } else {
+          this.registrarEvento(`Error al obtener post ${i}`);
+          return null;
+        }
+      })
+    );
+  }
+
+  Promise.all(promesas).then(posts => { //tuve que usar promise para que los 10 posts se carguen correctamente en orden de ID. si no usaba esto, se cargaban desordenados.
+    // ya que hacia las llamadas asincronas y no esperaba a que termine una para hacer la otra.
+    this.listaPosts = posts.filter(p => p !== null).sort((a, b) => a.id - b.id);
+  });
+},
+
+
+
+
+      obtenerComentariosDePost(postId) {
+      obtenerComments(postId).then(comentarios => {
+      this.comentariosPostSeleccionado = comentarios;
+      this.registrarEvento(`Comentarios del post ${postId} cargados`);
+      });
         }
       },
+
+     
 
       computed: {
         tareasPendientes() {
@@ -251,9 +327,10 @@
       },
       mounted() {
         this.registrarEvento('mounted');
+        this.obtenerPrimerosPosts();
       },
       //beforeUpdate() {
-        //this.registrarEvento('beforeUpdate'); //para que la lista de eventos no sea tan larga había comentado este evento.
+        //this.registrarEvento('beforeUpdate'); //para que la lista de eventos no sea tan larga comenté este evento.
       //},
       //updated() {
         //this.registrarEvento('updated'); //y este también. para que no se generé un bucle infinito al actualizar el DOM.
@@ -263,8 +340,11 @@
       },
       unmounted() {
         this.registrarEvento('unmounted');
-      }
-    }).mount('#app');
+      },  
+     })
+
+
+    .mount('#app');
 
     function obtenerPost(postId) { //recibe un paramatreo postId. que es el id del post a consultar.
     return axios.get(`https://jsonplaceholder.typicode.com/posts/${postId}`) //hace la llamada a la API.
@@ -284,14 +364,6 @@
       return [];
     });
   }
-
-    obtenerPost(1).then(post => { //llama a la función obtenerPost con el id .
-    console.log('Post:', post);
-    });
-
-    obtenerComments(1).then(comentarios => { //llama a la función obtenerComments con el id .
-    console.log('Comentarios:', comentarios);
-    });
 
 
 
