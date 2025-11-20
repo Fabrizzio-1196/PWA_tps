@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>tp1</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
        <style>
         body {
             font-family: Arial, sans-serif;
@@ -92,6 +93,27 @@
         ID {{ evento.id }} - {{ evento.nombre }} - {{ evento.timestamp }}
       </li>
     </ul>
+
+
+    <h2>Buscar Post</h2>
+      <input v-model="postId" type="number" placeholder="Ingrese postId">
+      <button @click="buscarPost">Buscar</button>
+
+    <div v-if="post">
+      <h3>Post #{{ post.id }}</h3>
+      <p><strong>Título:</strong> {{ post.title }}</p>
+      <p><strong>Contenido:</strong> {{ post.body }}</p>
+    </div>
+
+    <div v-if="comentarios.length">
+      <h3>Comentarios</h3>
+      <ul>
+        <li v-for="comentario in comentarios" :key="comentario.id">
+        <strong>{{ comentario.name }}</strong>: {{ comentario.body }}
+        </li>
+      </ul>
+    </div>
+
   </div>
 
   <script>
@@ -137,8 +159,13 @@
           listaeventos: [],
           tareas: [
             { id: 1, texto: 'Estudiar Vue', completa: false },
-          ]
+          ],
+          postId: '',
+          post: null,
+          comentarios: [],
+
         };
+
       },
 
       methods: {
@@ -189,6 +216,20 @@
         guardarTareas() {
           localStorage.setItem('tareas', JSON.stringify(this.tareas));
           this.registrarEvento('Actualizar Tarea');
+        },
+
+        buscarPost() {
+        if (!this.postId) return;
+
+          obtenerPost(this.postId).then(post => {
+        this.post = post;
+        this.registrarEvento(post ? `Post ${this.postId} obtenido` : `Error al obtener post ${this.postId}`);
+        });
+
+        obtenerComments(this.postId).then(comentarios => {
+        this.comentarios = comentarios;
+        this.registrarEvento(comentarios.length ? `Comentarios del post ${this.postId} obtenidos` : `Sin comentarios para el post ${this.postId}`);
+        });
         }
       },
 
@@ -211,12 +252,12 @@
       mounted() {
         this.registrarEvento('mounted');
       },
-      beforeUpdate() {
-        this.registrarEvento('beforeUpdate'); //para que la lista de eventos no sea tan larga había comentado este evento.
-      },
-      updated() {
-        this.registrarEvento('updated'); //y este también. para que no se generé un bucle infinito al actualizar el DOM.
-       },
+      //beforeUpdate() {
+        //this.registrarEvento('beforeUpdate'); //para que la lista de eventos no sea tan larga había comentado este evento.
+      //},
+      //updated() {
+        //this.registrarEvento('updated'); //y este también. para que no se generé un bucle infinito al actualizar el DOM.
+       //},
       beforeUnmount() {
         this.registrarEvento('beforeUnmount');
       },
@@ -224,6 +265,36 @@
         this.registrarEvento('unmounted');
       }
     }).mount('#app');
+
+    function obtenerPost(postId) { //recibe un paramatreo postId. que es el id del post a consultar.
+    return axios.get(`https://jsonplaceholder.typicode.com/posts/${postId}`) //hace la llamada a la API.
+    .then(response => response.data) //devuelve los datos del post.
+    .catch(error => {
+      console.error(`Error al obtener el post ${postId}:`, error);
+      return null;
+    });
+
+  }
+
+    function obtenerComments(postId) { //recibe un paramatreo postId. 
+    return axios.get(`https://jsonplaceholder.typicode.com/posts/${postId}/comments`) //hace la llamada a la API.
+    .then(response => response.data) //devuelve un array con los comentarios del post.
+    .catch(error => {
+      console.error(`Error al obtener comentarios del post ${postId}:`, error);
+      return [];
+    });
+  }
+
+    obtenerPost(1).then(post => { //llama a la función obtenerPost con el id .
+    console.log('Post:', post);
+    });
+
+    obtenerComments(1).then(comentarios => { //llama a la función obtenerComments con el id .
+    console.log('Comentarios:', comentarios);
+    });
+
+
+
   </script>
 </body>
 </html>
